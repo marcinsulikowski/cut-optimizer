@@ -1,6 +1,6 @@
 """A wrapper class for Graph which adds tags for vertices and edges."""
 
-from typing import Any, Dict, Generic, overload, Sequence, TypeVar, Union
+from typing import Any, Dict, Generic, overload, Set, Sequence, TypeVar, Union
 
 from cut_optimizer.graph import Edge, Graph, Vertex
 
@@ -17,22 +17,36 @@ class LabelledGraph(Graph, Generic[_VertexTag, _EdgeTag]):
 
     def __init__(self) -> None:
         super().__init__()
+        # Mapping from graph elements to tags
         self.edge_tags: Dict[Edge, _EdgeTag] = {}
         self.vertex_tags: Dict[Vertex, _VertexTag] = {}
+        # Reverse mappings:
+        self.tag_to_edges: Dict[_EdgeTag, Set[Edge]] = {}
+        self.tag_to_vertices: Dict[_VertexTag, Set[Vertex]] = {}
 
     def remove_edge(self, edge: Edge) -> None:
         """Override the method from the superclass to also remove a tag."""
         super().remove_edge(edge)
         try:
-            del self.edge_tags[edge]
+            tag = self.edge_tags[edge]
         except KeyError:
             # The edge didn't have any tag which is OK
             pass
+        else:
+            del self.edge_tags[edge]
+            edges_with_tag = self.tag_to_edges[tag]
+            edges_with_tag.remove(edge)
+            if not edges_with_tag:
+                del self.tag_to_edges[tag]
 
     def add_tagged_vertex(self, tag: _VertexTag) -> Vertex:
         """Add single vertex with a given tag."""
         vertex = super().add_vertex(Vertex())
         self.vertex_tags[vertex] = tag
+        if tag in self.tag_to_vertices:
+            self.tag_to_vertices[tag].add(vertex)
+        else:
+            self.tag_to_vertices[tag] = {vertex}
         return vertex
 
     def add_tagged_vertices(self, tags: Sequence[_VertexTag]) -> None:
@@ -58,6 +72,10 @@ class LabelledGraph(Graph, Generic[_VertexTag, _EdgeTag]):
         edge = self.add_edge(Edge(vertex_1, vertex_2))
         if not isinstance(tag, _NoArgument):
             self.edge_tags[edge] = tag
+            if tag in self.tag_to_edges:
+                self.tag_to_edges[tag].add(edge)
+            else:
+                self.tag_to_edges[tag] = {edge}
         return edge
 
     @overload
@@ -76,15 +94,25 @@ class LabelledGraph(Graph, Generic[_VertexTag, _EdgeTag]):
             return self.vertex_tags[element]
 
     def get_vertex(self, tag: _VertexTag) -> Vertex:
-        """Return a vertex given its tag."""
-        for vertex, vertex_tag in self.vertex_tags.items():
-            if vertex_tag == tag:
-                return vertex
-        raise KeyError(tag)
+        """Return a vertex given its tag.
+
+        :raises KeyError: if there's no vertex with the given tag.
+        :raises ValueError: if there's more than 1 vertex with the given tag.
+        """
+        candidates = self.tag_to_vertices[tag]
+        if len(candidates) == 1:
+            return next(iter(candidates))
+        else:
+            raise ValueError(tag)
 
     def get_edge(self, tag: _EdgeTag) -> Edge:
-        """Return an edge given its tag."""
-        for edge, edge_tag in self.edge_tags.items():
-            if edge_tag == tag:
-                return edge
-        raise KeyError(tag)
+        """Return an edge given its tag.
+
+        :raises KeyError: if there's no edge with the given tag.
+        :raises ValueError: if there's more than 1 edge with the given tag.
+        """
+        candidates = self.tag_to_edges[tag]
+        if len(candidates) == 1:
+            return next(iter(candidates))
+        else:
+            raise ValueError(tag)
