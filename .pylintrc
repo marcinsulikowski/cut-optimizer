@@ -1,0 +1,5 @@
+[MESSAGES CONTROL]
+disable=locally-disabled,no-else-return,no-else-raise,bad-continuation,line-too-long,too-few-public-methods
+
+# Allow longer names for tests functions.
+function-rgx=([a-z_][a-z0-9_]{2,45}|(perspective|test)_[a-zA-Z0-9_]{2,60})$

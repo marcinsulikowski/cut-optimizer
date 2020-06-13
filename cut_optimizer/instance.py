@@ -45,5 +45,6 @@ class CutInstance:
         self.polylines = polylines
 
     def dump(self, file: TextIO) -> None:
+        """Print the instance to the given file."""
         for line in self.polylines:
-            print(f"{line.name}: {line.start} -> {line.end}", file=file)
+            print(line, file=file)
