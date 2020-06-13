@@ -1,6 +1,16 @@
 """A wrapper class for Graph which adds tags for vertices and edges."""
 
-from typing import Any, Dict, Generic, overload, Set, Sequence, TypeVar, Union
+from typing import (
+    Any,
+    Dict,
+    Generic,
+    Iterable,
+    overload,
+    Sequence,
+    Set,
+    TypeVar,
+    Union,
+)
 
 from cut_optimizer.graph import Edge, Graph, Vertex
 
@@ -92,6 +102,14 @@ class LabelledGraph(Graph, Generic[_VertexTag, _EdgeTag]):
             return self.edge_tags[element]
         else:
             return self.vertex_tags[element]
+
+    def get_vertex_tags(self) -> Iterable[_VertexTag]:
+        """Return all vertex tags."""
+        return self.tag_to_vertices.keys()
+
+    def get_edge_tags(self) -> Iterable[_EdgeTag]:
+        """Return all edge tags."""
+        return self.tag_to_edges.keys()
 
     def get_vertex(self, tag: _VertexTag) -> Vertex:
         """Return a vertex given its tag.
