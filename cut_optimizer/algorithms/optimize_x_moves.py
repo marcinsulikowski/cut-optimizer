@@ -1,5 +1,6 @@
 """Minimizes the amount of X-axis moves needed to cut a set of polylines."""
 
+import random
 from dataclasses import dataclass
 from typing import Iterable, List, Tuple, Union
 
@@ -117,7 +118,9 @@ class XCoordGraph(LabelledGraph[int, Union[Polyline, Penalty]]):
             vertex_1 = self.get_vertex(x_1)
             vertex_2 = self.get_vertex(x_2)
             candidate_edges.append((abs(x_2 - x_1), vertex_1, vertex_2))
-        candidate_edges.sort(key=lambda candidate: candidate[0])
+        candidate_edges.sort(
+            key=lambda candidate: (candidate[0], random.uniform(0, 1))
+        )
 
         union_find = DisjointSet[Vertex]()
         for edge in self.edges:
@@ -190,6 +193,9 @@ def optimize_x_moves(polylines: List[Polyline]) -> List[SolutionStep]:
     graph.add_closed_polylines(poly for poly in polylines if poly.is_closed)
     solutions = sorted(
         [graph.solve_for_end(vertex) for vertex in graph.vertices],
-        key=lambda penalty_and_solution: penalty_and_solution[0],
+        key=lambda penalty_and_solution: (
+            penalty_and_solution[0],
+            random.uniform(0, 1),
+        ),
     )
     return solutions[0][1]
