@@ -2,8 +2,6 @@
 
 from typing import Sequence
 
-import pytest
-
 from cut_optimizer.algorithms.optimize_x_moves import optimize_x_moves
 from cut_optimizer.instance import Point, Polyline
 
@@ -13,7 +11,6 @@ def order_to_string(polylines: Sequence[Polyline]) -> str:
     return "".join(poly.name for poly in polylines)
 
 
-@pytest.mark.xfail
 def test_case_1() -> None:
     """Test 1."""
     polylines = [
@@ -24,7 +21,6 @@ def test_case_1() -> None:
     assert order_to_string(optimize_x_moves(polylines)) == "ACB"
 
 
-@pytest.mark.xfail
 def test_case_2() -> None:
     """Test 2."""
     polylines = [
@@ -34,10 +30,9 @@ def test_case_2() -> None:
         Polyline("C", Point(33, 0), Point(34, 0), is_closed=False),
         Polyline("D", Point(22, 0), Point(28, 0), is_closed=False),
     ]
-    assert order_to_string(optimize_x_moves(polylines)) == "ABLDC"
+    assert order_to_string(optimize_x_moves(polylines)) == "ABLCD"
 
 
-@pytest.mark.xfail
 def test_case_3() -> None:
     """Test 3."""
     polylines = [
@@ -45,9 +40,9 @@ def test_case_3() -> None:
         Polyline("A", Point(1, 0), Point(2, 0), is_closed=False),
         Polyline("B", Point(4, 0), Point(5, 0), is_closed=False),
         Polyline("C", Point(33, 0), Point(34, 0), is_closed=False),
-        Polyline("D", Point(11, 0), Point(28, 0), is_closed=False),
+        Polyline("D", Point(6, 0), Point(28, 0), is_closed=False),
     ]
-    assert order_to_string(optimize_x_moves(polylines)) == "ABCDL"
+    assert order_to_string(optimize_x_moves(polylines)) == "ALCDB"
 
 
 def test_case_4() -> None:
@@ -64,3 +59,23 @@ def test_case_4() -> None:
         "BCDA",
         "BDCA",
     }
+
+
+def test_case_5() -> None:
+    """Test 5."""
+    polylines = [
+        Polyline("A", Point(1, 0), Point(10, 0), is_closed=False),
+        Polyline("B", Point(1, 0), Point(3, 0), is_closed=False),
+        Polyline("C", Point(1, 0), Point(3, 0), is_closed=False),
+    ]
+    assert order_to_string(optimize_x_moves(polylines)) in {"BCA", "CBA"}
+
+
+def test_case_6() -> None:
+    """Test 5."""
+    polylines = [
+        Polyline("A", Point(1, 0), Point(100, 0), is_closed=False),
+        Polyline("B", Point(3, 0), Point(110, 0), is_closed=False),
+        Polyline("C", Point(5, 0), Point(9, 0), is_closed=False),
+    ]
+    assert order_to_string(optimize_x_moves(polylines)) == "ABC"

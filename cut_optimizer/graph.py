@@ -71,3 +71,7 @@ class Graph:
     def get_vertex_degree(self, vertex: Vertex) -> int:
         """Get a degree of a given vertex."""
         return len(self.neighbors[vertex])
+
+    def is_even_degree(self, vertex: Vertex) -> bool:
+        """Tell if the degree of a given vertex is even."""
+        return self.get_vertex_degree(vertex) % 2 == 0

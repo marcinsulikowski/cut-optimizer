@@ -16,6 +16,9 @@ class Penalty:
     def __init__(self, value: int) -> None:
         self.value = value
 
+    def __str__(self) -> str:
+        return f"Penalty({self.value})"
+
 
 class XCoordGraph(LabelledGraph[int, Union[Polyline, Penalty]]):
     """Graph where vertices are X coordinates and edges and polylines."""
@@ -56,7 +59,42 @@ class XCoordGraph(LabelledGraph[int, Union[Polyline, Penalty]]):
             self.remove_edge(edge)
 
     def add_required_penalties(self, begin: Vertex, end: Vertex) -> None:
-        """Add penalty edges - phase 1."""
+        """Add penalty edges - phase 1
+
+        Add penalty edges between vertices to ensure that any vertex different
+        than the begin and end of the path has even degree.
+        """
+        # We want to ensure that there's an Euler path from begin to end which
+        # means that any vertex other than the two needs to be of an even
+        # degree, and that the degree of both `begin` and `end` is odd, unless
+        # they are the same vertex.
+        vertices_to_change_degree = [
+            vertex
+            for vertex in self.vertices
+            if self.get_vertex_degree(vertex) % 2 == 1
+            and vertex not in {begin, end}
+        ]
+        if begin == end:
+            if not self.is_even_degree(begin):
+                vertices_to_change_degree.append(begin)
+        else:
+            if self.is_even_degree(begin):
+                vertices_to_change_degree.append(begin)
+            if self.is_even_degree(end):
+                vertices_to_change_degree.append(end)
+        vertices_to_change_degree.sort(key=self.get_tag)
+        assert len(vertices_to_change_degree) % 2 == 0
+
+        # Change the degrees by adding minimal amount of edges, i.e.,
+        # edge from vertex 0 to 1, 2 to 3, 4 to 5, etc.
+        for i in range(len(vertices_to_change_degree) // 2):
+            vertex_1 = vertices_to_change_degree[2 * i]
+            vertex_2 = vertices_to_change_degree[2 * i + 1]
+            self.add_tagged_edge(
+                vertex_1,
+                vertex_2,
+                Penalty(self.get_tag(vertex_2) - self.get_tag(vertex_1)),
+            )
 
     def make_connected(self) -> None:
         """Add minimal edges to make the graph connected."""
@@ -84,7 +122,7 @@ class XCoordGraph(LabelledGraph[int, Union[Polyline, Penalty]]):
                 union_find.union(vertex_1, vertex_2)
 
     def solve_for_end(self, path_end: Vertex) -> Tuple[int, List[Polyline]]:
-        """TODO."""
+        """Find the best solution that ends on the given vertex."""
         path_begin = self.get_vertex(0)
         self.add_required_penalties(path_begin, path_end)
         self.make_connected()
