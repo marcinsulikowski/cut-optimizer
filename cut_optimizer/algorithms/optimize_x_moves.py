@@ -2,6 +2,8 @@
 
 from typing import Iterable, List, Tuple, Union
 
+from disjoint_set import DisjointSet
+
 from cut_optimizer.algorithms.euler_path import euler_path
 from cut_optimizer.graph import Vertex
 from cut_optimizer.instance import Polyline
@@ -58,6 +60,28 @@ class XCoordGraph(LabelledGraph[int, Union[Polyline, Penalty]]):
 
     def make_connected(self) -> None:
         """Add minimal edges to make the graph connected."""
+        # Create a collection of all edges which connect consecutive vertices.
+        # For each such edge remember its length because we'll try to use the
+        # shortest of them to connect components of the graph.
+        candidate_edges: List[Tuple[int, Vertex, Vertex]] = []
+        x_coords = sorted(self.get_vertex_tags())
+        for x_1, x_2 in zip(x_coords, x_coords[1:]):
+            vertex_1 = self.get_vertex(x_1)
+            vertex_2 = self.get_vertex(x_2)
+            candidate_edges.append((abs(x_2 - x_1), vertex_1, vertex_2))
+        candidate_edges.sort(key=lambda candidate: candidate[0])
+
+        union_find = DisjointSet[Vertex]()
+        for edge in self.edges:
+            union_find.union(edge.vertex_1, edge.vertex_2)
+        for distance, vertex_1, vertex_2 in candidate_edges:
+            if not union_find.connected(vertex_1, vertex_2):
+                # This step is performed after fixing the parity of degrees of
+                # each vertex. At this stage we don't want to change any
+                # partities so we need to add two edges.
+                self.add_tagged_edge(vertex_1, vertex_2, Penalty(distance))
+                self.add_tagged_edge(vertex_1, vertex_2, Penalty(distance))
+                union_find.union(vertex_1, vertex_2)
 
     def solve_for_end(self, path_end: Vertex) -> Tuple[int, List[Polyline]]:
         """TODO."""

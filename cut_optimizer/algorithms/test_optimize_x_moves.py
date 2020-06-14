@@ -48,3 +48,19 @@ def test_case_3() -> None:
         Polyline("D", Point(11, 0), Point(28, 0), is_closed=False),
     ]
     assert order_to_string(optimize_x_moves(polylines)) == "ABCDL"
+
+
+def test_case_4() -> None:
+    """Test 4."""
+    polylines = [
+        Polyline("A", Point(1, 0), Point(10, 0), is_closed=False),
+        Polyline("B", Point(10, 0), Point(1, 0), is_closed=False),
+        Polyline("C", Point(7, 0), Point(8, 0), is_closed=False),
+        Polyline("D", Point(7, 0), Point(8, 0), is_closed=False),
+    ]
+    assert order_to_string(optimize_x_moves(polylines)) in {
+        "ACDB",
+        "ADCB",
+        "BCDA",
+        "BDCA",
+    }
