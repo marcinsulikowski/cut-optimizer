@@ -2,13 +2,29 @@
 
 from typing import Sequence
 
-from cut_optimizer.algorithms.optimize_x_moves import optimize_x_moves
+from cut_optimizer.algorithms.optimize_x_moves import (
+    optimize_x_moves,
+    SolutionStep,
+)
 from cut_optimizer.instance import Point, Polyline
 
 
-def order_to_string(polylines: Sequence[Polyline]) -> str:
+def steps_to_string(
+    solution: Sequence[SolutionStep], show_directions: bool = False
+) -> str:
     """Returns concatenated names of given polylines."""
-    return "".join(poly.name for poly in polylines)
+
+    def step_to_string(step: SolutionStep) -> str:
+        if (
+            not show_directions
+            or step.polyline.is_closed
+            or step.polyline.start == step.start
+        ):
+            return step.polyline.name
+        else:
+            return step.polyline.name + "'"
+
+    return "".join(step_to_string(step) for step in solution)
 
 
 def test_case_1() -> None:
@@ -18,7 +34,7 @@ def test_case_1() -> None:
         Polyline("B", Point(8, 0), Point(99, 0), is_closed=False),
         Polyline("C", Point(9, 0), Point(20, 0), is_closed=False),
     ]
-    assert order_to_string(optimize_x_moves(polylines)) == "ACB"
+    assert steps_to_string(optimize_x_moves(polylines)) == "ACB"
 
 
 def test_case_2() -> None:
@@ -30,7 +46,7 @@ def test_case_2() -> None:
         Polyline("C", Point(33, 0), Point(34, 0), is_closed=False),
         Polyline("D", Point(22, 0), Point(28, 0), is_closed=False),
     ]
-    assert order_to_string(optimize_x_moves(polylines)) == "ABLCD"
+    assert steps_to_string(optimize_x_moves(polylines)) == "ABLCD"
 
 
 def test_case_3() -> None:
@@ -42,7 +58,7 @@ def test_case_3() -> None:
         Polyline("C", Point(33, 0), Point(34, 0), is_closed=False),
         Polyline("D", Point(6, 0), Point(28, 0), is_closed=False),
     ]
-    assert order_to_string(optimize_x_moves(polylines)) == "ALCDB"
+    assert steps_to_string(optimize_x_moves(polylines)) == "ALCDB"
 
 
 def test_case_4() -> None:
@@ -53,12 +69,9 @@ def test_case_4() -> None:
         Polyline("C", Point(7, 0), Point(8, 0), is_closed=False),
         Polyline("D", Point(7, 0), Point(8, 0), is_closed=False),
     ]
-    assert order_to_string(optimize_x_moves(polylines)) in {
-        "ACDB",
-        "ADCB",
-        "BCDA",
-        "BDCA",
-    }
+    assert steps_to_string(
+        optimize_x_moves(polylines), show_directions=True
+    ) in {"AC'DB", "AD'CB", "B'C'DA'", "B'D'CA'",}
 
 
 def test_case_5() -> None:
@@ -68,7 +81,9 @@ def test_case_5() -> None:
         Polyline("B", Point(1, 0), Point(3, 0), is_closed=False),
         Polyline("C", Point(1, 0), Point(3, 0), is_closed=False),
     ]
-    assert order_to_string(optimize_x_moves(polylines)) in {"BCA", "CBA"}
+    assert steps_to_string(
+        optimize_x_moves(polylines), show_directions=True
+    ) in {"BC'A", "CB'A"}
 
 
 def test_case_6() -> None:
@@ -78,4 +93,7 @@ def test_case_6() -> None:
         Polyline("B", Point(3, 0), Point(110, 0), is_closed=False),
         Polyline("C", Point(5, 0), Point(9, 0), is_closed=False),
     ]
-    assert order_to_string(optimize_x_moves(polylines)) == "ABC"
+    assert (
+        steps_to_string(optimize_x_moves(polylines), show_directions=True)
+        == "AB'C"
+    )

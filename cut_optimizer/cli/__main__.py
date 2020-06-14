@@ -40,8 +40,18 @@ def main() -> None:
         with open(args.input_file, "r") as input_file:
             polys = read_instance(input_file)
 
-    for poly in optimize_x_moves(polys):
-        print(poly.name)
+    for step in optimize_x_moves(polys):
+        if step.polyline.is_closed:
+            step_type = "closed "
+        elif step.start == step.polyline.start:
+            step_type = "forward"
+        else:
+            step_type = "reverse"
+        print(
+            "{} {} {} -> {}".format(
+                step.polyline.name, step_type, step.start, step.end,
+            )
+        )
 
 
 if __name__ == "__main__":

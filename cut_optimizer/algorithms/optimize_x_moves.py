@@ -1,13 +1,23 @@
 """Minimizes the amount of X-axis moves needed to cut a set of polylines."""
 
+from dataclasses import dataclass
 from typing import Iterable, List, Tuple, Union
 
 from disjoint_set import DisjointSet
 
 from cut_optimizer.algorithms.euler_path import euler_path
-from cut_optimizer.graph import Vertex
-from cut_optimizer.instance import Polyline
+from cut_optimizer.graph import Edge, Vertex
+from cut_optimizer.instance import Point, Polyline
 from cut_optimizer.labelled_graph import LabelledGraph
+
+
+@dataclass
+class SolutionStep:
+    """A step in the solution."""
+
+    polyline: Polyline
+    start: Point
+    end: Point
 
 
 class Penalty:
@@ -121,17 +131,46 @@ class XCoordGraph(LabelledGraph[int, Union[Polyline, Penalty]]):
                 self.add_tagged_edge(vertex_1, vertex_2, Penalty(distance))
                 union_find.union(vertex_1, vertex_2)
 
-    def solve_for_end(self, path_end: Vertex) -> Tuple[int, List[Polyline]]:
+    def path_to_solution(self, path: List[Edge]) -> List[SolutionStep]:
+        """Get a solution which corresponds to a given Euler path."""
+        solution = []
+        current_pos = self.get_vertex(0)
+        for edge in path:
+            next_pos = edge.other_end(current_pos)
+            edge_tag = self.get_tag(edge)
+            if isinstance(edge_tag, Polyline):
+                current_x = self.get_tag(current_pos)
+                polyline = edge_tag
+                if polyline.is_closed:
+                    start = Point(current_x, polyline.start.y)
+                    end = start
+                else:
+                    assert current_x in (polyline.start.x, polyline.end.x)
+                    if current_x == polyline.start.x:
+                        start = polyline.start
+                        end = polyline.end
+                    else:
+                        start = polyline.end
+                        end = polyline.start
+                    solution.append(SolutionStep(polyline, start, end))
+            current_pos = next_pos
+        return solution
+
+    def path_to_penalty(self, path: List[Edge]) -> int:
+        """Get the total penalty of a given Euler path."""
+        tags = [self.get_tag(edge) for edge in path]
+        return sum(tag.value for tag in tags if isinstance(tag, Penalty))
+
+    def solve_for_end(self, path_end: Vertex) -> Tuple[int, List[SolutionStep]]:
         """Find the best solution that ends on the given vertex."""
         path_begin = self.get_vertex(0)
         self.add_required_penalties(path_begin, path_end)
         self.make_connected()
         path = euler_path(self, path_begin)
-        tags = [self.get_tag(edge) for edge in path]
-        penalties = [tag.value for tag in tags if isinstance(tag, Penalty)]
-        polylines = [tag for tag in tags if isinstance(tag, Polyline)]
+        penalty = self.path_to_penalty(path)
+        solution = self.path_to_solution(path)
         self.remove_penalty_edges()
-        return sum(penalties), polylines
+        return penalty, solution
 
     def _ensure_vertex(self, x_coordinate: int) -> Vertex:
         """Create vertex for a given X coordinate if not exists
@@ -144,12 +183,13 @@ class XCoordGraph(LabelledGraph[int, Union[Polyline, Penalty]]):
             return self.add_tagged_vertex(x_coordinate)
 
 
-def optimize_x_moves(polylines: List[Polyline]) -> List[Polyline]:
+def optimize_x_moves(polylines: List[Polyline]) -> List[SolutionStep]:
     """Find an order of cutting which minimizes moves along the X axis."""
     graph = XCoordGraph()
     graph.add_open_polylines(poly for poly in polylines if poly.is_open)
     graph.add_closed_polylines(poly for poly in polylines if poly.is_closed)
     solutions = sorted(
-        [graph.solve_for_end(vertex) for vertex in graph.vertices]
+        [graph.solve_for_end(vertex) for vertex in graph.vertices],
+        key=lambda penalty_and_solution: penalty_and_solution[0],
     )
     return solutions[0][1]
