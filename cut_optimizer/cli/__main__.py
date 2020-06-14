@@ -31,7 +31,7 @@ def main() -> None:
     """Main entry point of the program."""
 
     parser = argparse.ArgumentParser("X-move optimizer")
-    parser.add_argument("input_file", default="-", help="Input file")
+    parser.add_argument("input_file", nargs="?", default="-", help="Input file")
     args = parser.parse_args()
 
     if args.input_file == "-":
