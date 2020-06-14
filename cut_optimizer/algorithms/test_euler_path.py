@@ -102,3 +102,28 @@ def test_euler_path_2() -> None:
         _euler_path_as_string(graph, start=3)
     with pytest.raises(NoEulerPathFound):
         _euler_path_as_string(graph, start=4)
+
+
+def test_euler_path_multigraph_1() -> None:
+    """Test finding an Euler path in a multigraph."""
+    graph = LabelledGraph[int, str]()
+    graph.add_tagged_vertex(1)
+    graph.add_tagged_edge(1, 1, "A")
+    graph.add_tagged_edge(1, 1, "B")
+    assert _euler_path_as_string(graph, start=1) in {"AB", "BA"}
+
+
+def test_euler_path_multigraph_2() -> None:
+    """Test finding an Euler path in a multigraph."""
+    graph = LabelledGraph[int, str]()
+    graph.add_tagged_vertices([1, 2])
+    graph.add_tagged_edge(1, 2, "A")
+    graph.add_tagged_edge(2, 2, "B")
+    graph.add_tagged_edge(2, 2, "C")
+    graph.add_tagged_edge(1, 2, "D")
+    assert _euler_path_as_string(graph, start=1) in {
+        "ABCD",
+        "ACBD",
+        "DBCA",
+        "DCBA",
+    }

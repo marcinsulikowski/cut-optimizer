@@ -1,6 +1,7 @@
 """Generic representation of a graph."""
 
 from typing import Dict, Iterable, Set
+from multiset import Multiset
 
 
 class Vertex:
@@ -29,7 +30,7 @@ class Graph:
 
     def __init__(self) -> None:
         self.edges: Set[Edge] = set()
-        self.neighbors: Dict[Vertex, Set[Edge]] = {}
+        self.neighbors: Dict[Vertex, "Multiset[Edge]"] = {}
 
     @property
     def vertices(self) -> Iterable[Vertex]:
@@ -48,7 +49,7 @@ class Graph:
     def add_vertex(self, vertex: Vertex) -> Vertex:
         """Add a new vertex to the graph."""
         assert vertex not in self.neighbors
-        self.neighbors[vertex] = set()
+        self.neighbors[vertex] = Multiset()
         return vertex
 
     def add_edge(self, edge: Edge) -> Edge:
@@ -56,15 +57,15 @@ class Graph:
         assert edge not in self.edges
         assert edge.vertex_1 in self.neighbors
         assert edge.vertex_2 in self.neighbors
-        self.neighbors[edge.vertex_1].add(edge)
-        self.neighbors[edge.vertex_2].add(edge)
+        self.neighbors[edge.vertex_1].add(edge, multiplicity=1)
+        self.neighbors[edge.vertex_2].add(edge, multiplicity=1)
         self.edges.add(edge)
         return edge
 
     def remove_edge(self, edge: Edge) -> None:
         """Remove an edge form the graph."""
-        self.neighbors[edge.vertex_1].remove(edge)
-        self.neighbors[edge.vertex_2].remove(edge)
+        self.neighbors[edge.vertex_1].remove(edge, multiplicity=1)
+        self.neighbors[edge.vertex_2].remove(edge, multiplicity=1)
         self.edges.remove(edge)
 
     def get_vertex_degree(self, vertex: Vertex) -> int:
