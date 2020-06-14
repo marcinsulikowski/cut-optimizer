@@ -1,11 +1,9 @@
 """Representation of cutting problems."""
 
-from dataclasses import dataclass
-from typing import Sequence, TextIO
+from typing import NamedTuple, Sequence, TextIO
 
 
-@dataclass
-class Point:
+class Point(NamedTuple):
     """Point on a 2D plane."""
 
     x: int  # pylint: disable=invalid-name
@@ -15,8 +13,7 @@ class Point:
         return f"({self.x}, {self.y})"
 
 
-@dataclass
-class Polyline:
+class Polyline(NamedTuple):
     """Open or closed polyline.
 
     In case of open polylines, `start` and `end` rare their first and last
