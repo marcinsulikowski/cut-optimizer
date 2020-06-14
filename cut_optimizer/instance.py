@@ -1,6 +1,6 @@
 """Representation of cutting problems."""
 
-from typing import NamedTuple, Sequence, TextIO
+from typing import NamedTuple
 
 
 class Point(NamedTuple):
@@ -26,6 +26,11 @@ class Polyline(NamedTuple):
     end: Point
     is_closed: bool
 
+    @property
+    def is_open(self) -> bool:
+        """Tell if this is an open polyline."""
+        return not self.is_closed
+
     def __str__(self) -> str:
         return "Polyline({}, {} -> {}, {})".format(
             self.name,
@@ -33,15 +38,3 @@ class Polyline(NamedTuple):
             self.end,
             "closed" if self.is_closed else "open",
         )
-
-
-class CutInstance:
-    """Instance of the curring problem."""
-
-    def __init__(self, polylines: Sequence[Polyline]):
-        self.polylines = polylines
-
-    def dump(self, file: TextIO) -> None:
-        """Print the instance to the given file."""
-        for line in self.polylines:
-            print(line, file=file)

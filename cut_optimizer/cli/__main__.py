@@ -1,12 +1,14 @@
 """CLI for the cut optimizer."""
 
+import argparse
 import sys
-from typing import TextIO
+from typing import List, TextIO
 
-from cut_optimizer.instance import CutInstance, Polyline, Point
+from cut_optimizer.algorithms.optimize_x_moves import optimize_x_moves
+from cut_optimizer.instance import Point, Polyline
 
 
-def read_instance(input_file: TextIO) -> CutInstance:
+def read_instance(input_file: TextIO) -> List[Polyline]:
     """Read CutInstance from an I/O stream."""
     polylines = []
     for line in input_file:
@@ -22,13 +24,24 @@ def read_instance(input_file: TextIO) -> CutInstance:
                 is_closed={"O": False, "C": True}[tokens[5]],
             )
         )
-    return CutInstance(polylines)
+    return polylines
 
 
 def main() -> None:
     """Main entry point of the program."""
-    cut_instance = read_instance(sys.stdin)
-    cut_instance.dump(sys.stdout)
+
+    parser = argparse.ArgumentParser("X-move optimizer")
+    parser.add_argument("input_file", default="-", help="Input file")
+    args = parser.parse_args()
+
+    if args.input_file == "-":
+        polys = read_instance(sys.stdin)
+    else:
+        with open(args.input_file, "r") as input_file:
+            polys = read_instance(input_file)
+
+    for poly in optimize_x_moves(polys):
+        print(poly.name)
 
 
 if __name__ == "__main__":
