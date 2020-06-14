@@ -16,9 +16,9 @@ class Point(NamedTuple):
 class Polyline(NamedTuple):
     """Open or closed polyline.
 
-    In case of open polylines, `start` and `end` rare their first and last
-    point. In case of closed polylines, they should be corners of of the
-    polyline's bounding box.
+    In case of open polylines, `start` and `end` are their first and last
+    point. In case of closed polylines, they are corners of of the polyline's
+    bounding box: start is (min_x, min_y), end is (max_x, max_y).
     """
 
     name: str

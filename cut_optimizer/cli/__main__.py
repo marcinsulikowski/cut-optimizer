@@ -16,14 +16,16 @@ def read_instance(input_file: TextIO) -> List[Polyline]:
             continue
         tokens = line.split()
         assert len(tokens) == 6
-        polylines.append(
-            Polyline(
-                name=tokens[0],
-                start=Point(int(tokens[1]), int(tokens[2])),
-                end=Point(int(tokens[3]), int(tokens[4])),
-                is_closed={"O": False, "C": True}[tokens[5]],
-            )
+        poly = Polyline(
+            name=tokens[0],
+            start=Point(int(tokens[1]), int(tokens[2])),
+            end=Point(int(tokens[3]), int(tokens[4])),
+            is_closed={"O": False, "C": True}[tokens[5]],
         )
+        if poly.is_closed:
+            assert poly.start.x <= poly.end.x
+            assert poly.start.y <= poly.end.y
+        polylines.append(poly)
     return polylines
 
 

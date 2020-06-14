@@ -1,8 +1,9 @@
 """Minimizes the amount of X-axis moves needed to cut a set of polylines."""
 
+import bisect
 import random
 from dataclasses import dataclass
-from typing import Iterable, List, Tuple, Union
+from typing import Dict, Iterable, List, Tuple, Union
 
 from disjoint_set import DisjointSet
 
@@ -51,13 +52,60 @@ class XCoordGraph(LabelledGraph[int, Union[Polyline, Penalty]]):
 
         This can be called only after all open polylines are already added.
         """
+        x_coords = sorted(self.get_vertex_tags())
+        to_add_between: Dict[Tuple[int, int], List[Polyline]] = {}
         for polyline in polylines:
             assert polyline.is_closed
-            # The code below is not correct. For each polyline we need to
-            # choose if we want to start cutting it from up, down, or
-            # somewhere in the middle.
-            vertex = self._ensure_vertex(polyline.start.x)
-            self.add_tagged_edge(vertex, vertex, polyline)
+            assert 0 <= polyline.start.x <= polyline.end.x
+            position = bisect.bisect_left(x_coords, polyline.start.x)
+            if position == len(x_coords):
+                self.add_closed_polyline_at(polyline, polyline.start.x)
+            elif polyline.end.x >= x_coords[position]:
+                self.add_closed_polyline_at(polyline, x_coords[position])
+            else:
+                assert position > 0
+                assert x_coords[position - 1] < polyline.start.x
+                assert polyline.end.x < x_coords[position]
+                interval = (x_coords[position - 1], x_coords[position])
+                if interval in to_add_between:
+                    to_add_between[interval].append(polyline)
+                else:
+                    to_add_between[interval] = [polyline]
+        for (start_x, end_x), polylines_between in to_add_between.items():
+            self.add_closed_polylines_between(polylines_between, start_x, end_x)
+
+    def add_closed_polyline_at(self, polyline: Polyline, position: int) -> None:
+        """Add one closed polyline to the graph.
+
+        For closed polylines, we require the caller to tell where's the optimal
+        point to start cutting the polyline.
+        """
+        assert polyline.start.x <= position <= polyline.end.x
+        vertex = self._ensure_vertex(position)
+        self.add_tagged_edge(vertex, vertex, polyline)
+
+    def add_closed_polylines_between(
+        self, polylines: List[Polyline], start_x: int, end_x: int,
+    ) -> None:
+        """Add closed polylines which fit between two x positions."""
+        by_start = sorted(polylines, key=lambda poly: poly.start.x)
+        by_end = sorted(polylines, key=lambda poly: poly.end.x, reverse=True)
+        while by_start:
+            assert by_end
+            assert by_start[0].start.x >= start_x
+            assert by_end[0].end.x <= end_x
+            if by_start[0].start.x - start_x < end_x - by_end[0].end.x:
+                polyline = by_start[0]
+                position = polyline.start.x
+                start_x = polyline.start.x
+            else:
+                polyline = by_end[0]
+                position = polyline.end.x
+                end_x = polyline.end.x
+            self.add_closed_polyline_at(polyline, position)
+            by_start.remove(polyline)
+            by_end.remove(polyline)
+        assert not by_end
 
     def remove_penalty_edges(self) -> None:
         """Remove all penalty edges from the graph."""
@@ -155,7 +203,7 @@ class XCoordGraph(LabelledGraph[int, Union[Polyline, Penalty]]):
                     else:
                         start = polyline.end
                         end = polyline.start
-                    solution.append(SolutionStep(polyline, start, end))
+                solution.append(SolutionStep(polyline, start, end))
             current_pos = next_pos
         return solution
 
