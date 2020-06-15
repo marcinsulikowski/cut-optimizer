@@ -3,7 +3,7 @@
 import bisect
 import random
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 from disjoint_set import DisjointSet
 
@@ -127,33 +127,29 @@ class XCoordGraph(LabelledGraph[int, Union[Polyline, Penalty]]):
         # means that any vertex other than the two needs to be of an even
         # degree, and that the degree of both `begin` and `end` is odd, unless
         # they are the same vertex.
-        vertices_to_change_degree = [
-            vertex
-            for vertex in self.vertices
-            if self.get_vertex_degree(vertex) % 2 == 1
-            and vertex not in {begin, end}
-        ]
-        if begin == end:
-            if not self.is_even_degree(begin):
-                vertices_to_change_degree.append(begin)
-        else:
-            if self.is_even_degree(begin):
-                vertices_to_change_degree.append(begin)
-            if self.is_even_degree(end):
-                vertices_to_change_degree.append(end)
-        vertices_to_change_degree.sort(key=self.get_tag)
-        assert len(vertices_to_change_degree) % 2 == 0
+        edge_begin: Optional[int] = None
+        for x_pos in sorted(self.get_vertex_tags()):
+            vertex = self.get_vertex(x_pos)
 
-        # Change the degrees by adding minimal amount of edges, i.e.,
-        # edge from vertex 0 to 1, 2 to 3, 4 to 5, etc.
-        for i in range(len(vertices_to_change_degree) // 2):
-            vertex_1 = vertices_to_change_degree[2 * i]
-            vertex_2 = vertices_to_change_degree[2 * i + 1]
-            self.add_tagged_edge(
-                vertex_1,
-                vertex_2,
-                Penalty(self.get_tag(vertex_2) - self.get_tag(vertex_1)),
-            )
+            # If the previous vertex required an extra edge, it must end at
+            # this vertex so end it here.
+            if edge_begin is not None:
+                self.add_tagged_edge(
+                    edge_begin, vertex, Penalty(x_pos - edge_begin)
+                )
+                edge_begin = None
+
+            # If the parity of the current vertex is not what we want, we'll
+            # add an extra edge to it.
+            if vertex in (begin, end) and begin != end:
+                needs_extra_edge = self.is_even_degree(vertex)
+            else:
+                needs_extra_edge = not self.is_even_degree(vertex)
+            if needs_extra_edge:
+                edge_begin = x_pos
+
+        # After reaching the last vertex there should be no unfinished edge.
+        assert edge_begin is None
 
     def make_connected(self) -> None:
         """Add minimal edges to make the graph connected."""

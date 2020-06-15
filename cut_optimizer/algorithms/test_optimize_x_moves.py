@@ -2,8 +2,6 @@
 
 from typing import Sequence
 
-import pytest
-
 from cut_optimizer.algorithms.optimize_x_moves import (
     optimize_x_moves,
     SolutionStep,
@@ -29,7 +27,6 @@ def steps_to_string(
     return "".join(step_to_string(step) for step in solution)
 
 
-@pytest.mark.xfail
 def test_simplest_closed_polylines() -> None:
     """Test the simplest problem with only closed polylines."""
     polylines = [
@@ -110,3 +107,16 @@ def test_case_6() -> None:
         steps_to_string(optimize_x_moves(polylines), show_directions=True)
         == "AB'C"
     )
+
+
+def test_case_7() -> None:
+    """Test 7."""
+    polylines = [
+        Polyline("A", Point(0, 0), Point(3, 0), is_closed=False),
+        Polyline("B", Point(0, 0), Point(3, 0), is_closed=False),
+        Polyline("C", Point(3, 0), Point(6, 0), is_closed=False),
+        Polyline("D", Point(3, 0), Point(6, 0), is_closed=False),
+    ]
+    assert steps_to_string(
+        optimize_x_moves(polylines), show_directions=True
+    ) in {"ACD'B'", "ADC'B'", "BCD'A'", "BDC'A'"}
