@@ -18,9 +18,9 @@ def read_instance(input_file: TextIO) -> List[Polyline]:
         assert len(tokens) == 6
         poly = Polyline(
             name=tokens[0],
-            start=Point(int(tokens[1]), int(tokens[2])),
-            end=Point(int(tokens[3]), int(tokens[4])),
-            is_closed={"O": False, "C": True}[tokens[5]],
+            start=Point(int(tokens[2]), int(tokens[3])),
+            end=Point(int(tokens[4]), int(tokens[5])),
+            is_closed={"O": False, "C": True}[tokens[1]],
         )
         if poly.is_closed:
             assert poly.start.x <= poly.end.x
