@@ -1,6 +1,7 @@
 """Euler path finding."""
 
 import random
+import sys
 from typing import List, Tuple
 
 from cut_optimizer.graph import Edge, Graph, Vertex
@@ -17,8 +18,13 @@ def euler_path(graph: Graph, start: Vertex) -> List[Edge]:
     :return: list of edges which form the path.
     """
     assert start in graph.vertices
-    path, _end = _euler_path_for_connected_component(graph.clone(), start)
-    return path
+    recursion_limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(len(graph.edges) + recursion_limit)
+    try:
+        path, _end = _euler_path_for_connected_component(graph.clone(), start)
+        return path
+    finally:
+        sys.setrecursionlimit(recursion_limit)
 
 
 def _euler_path_for_connected_component(
