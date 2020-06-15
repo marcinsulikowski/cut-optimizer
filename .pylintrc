@@ -1,5 +1,8 @@
 [MESSAGES CONTROL]
+
+# Remove warnings which we don't want (no-else-return, too-few-public-methods)
+# which contadict what Black does (bad-continuation,line-too-long).
 disable=locally-disabled,no-else-return,no-else-raise,bad-continuation,line-too-long,too-few-public-methods
 
-# Allow longer names for tests functions.
-function-rgx=([a-z_][a-z0-9_]{2,45}|(perspective|test)_[a-zA-Z0-9_]{2,60})$
+# Add more flexibility to names of test functions
+function-rgx=^([a-z_][a-z0-9_]{2,45}|test_[a-zA-Z0-9_]{2,60})$
