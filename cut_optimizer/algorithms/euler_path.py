@@ -1,7 +1,7 @@
 """Euler path finding."""
 
-from typing import List, Tuple
 import random
+from typing import List, Tuple
 
 from cut_optimizer.graph import Edge, Graph, Vertex
 

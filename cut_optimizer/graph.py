@@ -1,6 +1,7 @@
 """Generic representation of a graph."""
 
 from typing import Dict, Iterable, Set
+
 from multiset import Multiset
 
 
