@@ -120,3 +120,68 @@ def test_case_7() -> None:
     assert steps_to_string(
         optimize_x_moves(polylines), show_directions=True
     ) in {"ACD'B'", "ADC'B'", "BCD'A'", "BDC'A'"}
+
+
+def test_case_8() -> None:
+    """Test 8."""
+    polylines = [
+        Polyline("A", Point(1, 0), Point(3, 3), is_closed=True),
+        Polyline("A", Point(1, 0), Point(3, 3), is_closed=True),
+        Polyline("B", Point(3, 0), Point(6, 3), is_closed=True),
+        Polyline("B", Point(3, 0), Point(6, 3), is_closed=True),
+        Polyline("C", Point(6, 0), Point(9, 3), is_closed=True),
+        Polyline("C", Point(6, 0), Point(9, 3), is_closed=True),
+    ]
+    assert steps_to_string(optimize_x_moves(polylines)) == "AABBCC"
+
+
+def test_case_9() -> None:
+    """Test 9."""
+    polylines = [
+        Polyline("A", Point(100, 0), Point(130, 0), is_closed=False),
+        Polyline("B", Point(125, 0), Point(160, 0), is_closed=False),
+        Polyline("C", Point(155, 0), Point(190, 0), is_closed=False),
+        Polyline("D", Point(145, 0), Point(150, 0), is_closed=False),
+        Polyline("E", Point(120, 0), Point(129, 0), is_closed=True),
+        Polyline("F", Point(180, 0), Point(220, 0), is_closed=True),
+        Polyline("G", Point(140, 0), Point(145, 0), is_closed=True),
+    ]
+    assert steps_to_string(
+        optimize_x_moves(polylines), show_directions=True
+    ) in {"AEBD'GCF", "AEBGDCF"}
+
+
+def test_case_10() -> None:
+    """Test 10."""
+    polylines = [
+        Polyline("A", Point(100, 0), Point(999, 0), is_closed=False),
+        Polyline("B", Point(200, 0), Point(400, 0), is_closed=True),
+        Polyline("C", Point(300, 0), Point(780, 0), is_closed=True),
+        Polyline("D", Point(780, 0), Point(900, 0), is_closed=True),
+    ]
+    assert steps_to_string(
+        optimize_x_moves(polylines), show_directions=True
+    ) in {"BCAD", "CBAD"}
+
+    polylines.append(
+        Polyline("E", Point(750, 0), Point(800, 0), is_closed=True),
+    )
+    assert steps_to_string(
+        optimize_x_moves(polylines), show_directions=True
+    ) in {"BADEC"}
+
+
+def test_case_11() -> None:
+    """Test 11."""
+    polylines = [
+        Polyline("A", Point(100, 0), Point(500, 100), is_closed=True),
+        Polyline("B", Point(200, 0), Point(900, 200), is_closed=True),
+        Polyline("C", Point(300, 0), Point(320, 400), is_closed=True),
+        Polyline("D", Point(400, 0), Point(700, 300), is_closed=True),
+        Polyline("E", Point(500, 0), Point(999, 250), is_closed=True),
+        Polyline("F", Point(600, 0), Point(720, 350), is_closed=True),
+        Polyline("G", Point(700, 0), Point(999, 150), is_closed=True),
+        Polyline("H", Point(800, 0), Point(800, 550), is_closed=True),
+        Polyline("I", Point(900, 0), Point(950, 300), is_closed=True),
+    ]
+    assert steps_to_string(optimize_x_moves(polylines)) == "ABCDEFGHI"
